@@ -171,6 +171,92 @@ class ApiClient {
     return this.request<Profile>('/data/profile');
   }
 
+  async updateProfile(data: { full_name?: string; email?: string }) {
+    return this.request<Profile>('/data/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    return this.request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
+  async getNotifications(unreadOnly?: boolean) {
+    const url = unreadOnly 
+      ? '/data/notifications?unread_only=true'
+      : '/data/notifications';
+    return this.request(url);
+  }
+
+  async markNotificationAsRead(id: string) {
+    return this.request(`/data/notifications/${id}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/data/notifications/read-all', {
+      method: 'PUT',
+    });
+  }
+
+  async getAuditLog(entityType?: string, entityId?: string, limit?: number) {
+    const params = new URLSearchParams();
+    if (entityType) params.append('entity_type', entityType);
+    if (entityId) params.append('entity_id', entityId);
+    if (limit) params.append('limit', limit.toString());
+    const query = params.toString();
+    return this.request(`/data/audit-log${query ? '?' + query : ''}`);
+  }
+
+  async getOrderAttachments(orderId: string) {
+    return this.request(`/data/orders/${orderId}/attachments`);
+  }
+
+  async uploadOrderAttachment(orderId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const token = this.getToken();
+    const response = await fetch(`${API_URL}/data/orders/${orderId}/attachments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Ошибка при загрузке файла');
+    }
+
+    return response.json();
+  }
+
+  async deleteAttachment(id: string) {
+    return this.request(`/data/attachments/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createBackup() {
+    return this.request('/data/backup/create', {
+      method: 'POST',
+    });
+  }
+
+  async restoreBackup(backup: any) {
+    return this.request('/data/backup/restore', {
+      method: 'POST',
+      body: JSON.stringify({ backup }),
+    });
+  }
+
   logout() {
     localStorage.removeItem('token');
   }

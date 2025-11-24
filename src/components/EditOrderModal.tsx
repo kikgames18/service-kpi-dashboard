@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../lib/api';
+import { OrderAttachments } from './OrderAttachments';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ServiceOrder {
   id: string;
@@ -27,6 +29,7 @@ interface EditOrderModalProps {
 }
 
 export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderModalProps) {
+  const { isAdmin } = useAuth();
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_phone: '',
@@ -43,6 +46,7 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen && order) {
@@ -72,11 +76,59 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
     }
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.customer_name.trim()) {
+      errors.customer_name = 'Имя клиента обязательно';
+    } else if (formData.customer_name.trim().length < 2) {
+      errors.customer_name = 'Имя должно содержать минимум 2 символа';
+    }
+
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    if (!formData.customer_phone.trim()) {
+      errors.customer_phone = 'Телефон обязателен';
+    } else if (!phoneRegex.test(formData.customer_phone)) {
+      errors.customer_phone = 'Некорректный формат телефона';
+    } else if (formData.customer_phone.replace(/\D/g, '').length < 10) {
+      errors.customer_phone = 'Телефон должен содержать минимум 10 цифр';
+    }
+
+    if (!formData.issue_description.trim()) {
+      errors.issue_description = 'Описание проблемы обязательно';
+    } else if (formData.issue_description.trim().length < 10) {
+      errors.issue_description = 'Описание должно содержать минимум 10 символов';
+    }
+
+    if (formData.estimated_cost) {
+      const cost = parseFloat(formData.estimated_cost);
+      if (isNaN(cost) || cost < 0) {
+        errors.estimated_cost = 'Стоимость должна быть положительным числом';
+      }
+    }
+
+    if (formData.final_cost) {
+      const cost = parseFloat(formData.final_cost);
+      if (isNaN(cost) || cost < 0) {
+        errors.final_cost = 'Стоимость должна быть положительным числом';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!order) return;
 
     setError('');
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -144,9 +196,21 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
                 type="text"
                 required
                 value={formData.customer_name}
-                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, customer_name: e.target.value });
+                  if (fieldErrors.customer_name) {
+                    setFieldErrors({ ...fieldErrors, customer_name: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.customer_name
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.customer_name && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.customer_name}</p>
+              )}
             </div>
 
             <div>
@@ -156,10 +220,23 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
               <input
                 type="tel"
                 required
+                placeholder="+7 (999) 123-45-67"
                 value={formData.customer_phone}
-                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, customer_phone: e.target.value });
+                  if (fieldErrors.customer_phone) {
+                    setFieldErrors({ ...fieldErrors, customer_phone: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.customer_phone
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.customer_phone && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.customer_phone}</p>
+              )}
             </div>
           </div>
 
@@ -215,9 +292,21 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
               required
               rows={3}
               value={formData.issue_description}
-              onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => {
+                setFormData({ ...formData, issue_description: e.target.value });
+                if (fieldErrors.issue_description) {
+                  setFieldErrors({ ...fieldErrors, issue_description: '' });
+                }
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                fieldErrors.issue_description
+                  ? 'border-red-300 bg-red-50'
+                  : 'border-gray-300'
+              }`}
             />
+            {fieldErrors.issue_description && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.issue_description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-4 gap-4">
@@ -262,9 +351,21 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
                 min="0"
                 step="0.01"
                 value={formData.estimated_cost}
-                onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, estimated_cost: e.target.value });
+                  if (fieldErrors.estimated_cost) {
+                    setFieldErrors({ ...fieldErrors, estimated_cost: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.estimated_cost
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.estimated_cost && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.estimated_cost}</p>
+              )}
             </div>
 
             <div>
@@ -276,9 +377,21 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
                 min="0"
                 step="0.01"
                 value={formData.final_cost}
-                onChange={(e) => setFormData({ ...formData, final_cost: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, final_cost: e.target.value });
+                  if (fieldErrors.final_cost) {
+                    setFieldErrors({ ...fieldErrors, final_cost: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.final_cost
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.final_cost && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.final_cost}</p>
+              )}
             </div>
           </div>
 
@@ -300,6 +413,13 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
             </select>
           </div>
 
+          {order && (
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Прикрепленные файлы</h3>
+              <OrderAttachments orderId={order.id} isAdmin={isAdmin} />
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
@@ -311,7 +431,7 @@ export function EditOrderModal({ isOpen, onClose, onSuccess, order }: EditOrderM
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
             >
               Отмена
             </button>

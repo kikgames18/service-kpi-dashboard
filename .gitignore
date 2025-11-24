@@ -52,3 +52,7 @@ coverage/
 *.pid
 *.seed
 *.pid.lock
+
+# Uploaded files
+server/uploads/*
+!server/uploads/.gitkeep

@@ -75,7 +75,7 @@ export function LineChart({ data, height = 200, color = '#3b82f6' }: LineChartPr
               x={point.x}
               y={height - padding + 25}
               textAnchor="middle"
-              className="text-xs fill-gray-600"
+              className="text-xs fill-gray-600 dark:fill-gray-400"
             >
               {item.label}
             </text>

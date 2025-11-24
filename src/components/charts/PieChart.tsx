@@ -51,7 +51,7 @@ export function PieChart({ data, size = 200 }: PieChartProps) {
         {slices.map((slice, index) => (
           <div key={index} className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: slice.color }} />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               {slice.label}: {slice.value} ({slice.percentage}%)
             </span>
           </div>

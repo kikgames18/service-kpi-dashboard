@@ -34,14 +34,14 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Сервис всем</h1>
-          <p className="text-gray-600">Система управления KPI</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Сервис всем</h1>
+          <p className="text-gray-600 dark:text-gray-400">Система управления KPI</p>
         </div>
 
         <div className="flex gap-2 mb-6">
@@ -142,10 +142,20 @@ export function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Тестовые данные:</p>
-          <p className="font-mono text-xs mt-1">admin@service.ru / admin123</p>
-        </div>
+        {isLogin && (
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                // TODO: Реализовать восстановление пароля
+                alert('Для восстановления пароля обратитесь к администратору системы.');
+              }}
+              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+            >
+              Забыли пароль?
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

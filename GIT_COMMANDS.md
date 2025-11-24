@@ -1,107 +1,127 @@
-# Команды Git для публикации на GitHub
+# Команды для загрузки проекта на GitHub
 
-## ⚠️ ВАЖНО: Перезапустите PowerShell после установки Git!
+## Ваша информация:
+- **GitHub username**: kikgames18
+- **Название репозитория**: WEB_DASHBOARD_KPI
+- **URL репозитория**: https://github.com/kikgames18/WEB_DASHBOARD_KPI.git
 
-После установки Git **обязательно закройте и заново откройте PowerShell**, чтобы Git стал доступен.
+## Шаг 1: Настройка Git (выполнить один раз)
 
-## Команды для выполнения
-
-Откройте **новый** PowerShell и выполните команды по порядку:
-
-### 1. Перейдите в папку проекта
+Откройте **новое** окно PowerShell и выполните:
 
 ```powershell
-cd "c:\Users\German\Downloads\project-bolt-sb1-qsjjhlj4 (1)\project"
+# Настройка имени пользователя
+git config --global user.name "kikgames18"
+
+# Настройка email (используйте ваш email от GitHub)
+git config --global user.email "ваш-email@example.com"
 ```
 
-### 2. Инициализация Git
+## Шаг 2: Создание репозитория на GitHub
+
+1. Перейдите на https://github.com
+2. Войдите в аккаунт **kikgames18**
+3. Нажмите **"+"** → **"New repository"**
+4. Заполните:
+   - **Repository name**: `WEB_DASHBOARD_KPI`
+   - **Description**: `Веб-дашборд KPI для "Сервис всем" - система управления заказами и сотрудниками`
+   - **Visibility**: Public или Private (на ваше усмотрение)
+   - **НЕ** ставьте галочки на "Add a README file", "Add .gitignore", "Choose a license"
+5. Нажмите **"Create repository"**
+
+## Шаг 3: Инициализация Git в проекте
+
+Откройте PowerShell в папке проекта и выполните:
 
 ```powershell
+# Перейдите в папку проекта
+cd "C:\Users\German\Downloads\project-bolt-sb1-qsjjhlj4 (1)\project"
+
+# Инициализация Git репозитория
 git init
-```
 
-### 3. Добавление файлов
-
-```powershell
+# Добавление всех файлов
 git add .
+
+# Создание первого коммита
+git commit -m "Initial commit: Веб-дашборд KPI для Сервис всем"
 ```
 
-### 4. Первый коммит
+## Шаг 4: Подключение к GitHub и отправка
 
 ```powershell
-git commit -m "Initial commit: KPI Dashboard for Service Business"
-```
+# Добавление удаленного репозитория
+git remote add origin https://github.com/kikgames18/WEB_DASHBOARD_KPI.git
 
-### 5. Подключение к GitHub
-
-```powershell
-git remote add origin https://github.com/kikgames18/service-kpi-dashboard.git
-```
-
-### 6. Переименование ветки
-
-```powershell
+# Переименование основной ветки в main
 git branch -M main
-```
 
-### 7. Отправка на GitHub
-
-```powershell
+# Отправка кода на GitHub
 git push -u origin main
 ```
 
-## При выполнении `git push`
+## Если Git запросит авторизацию:
 
-GitHub запросит авторизацию:
-
-1. **Username**: введите `kikgames18`
-2. **Password**: введите **Personal Access Token** (не пароль от GitHub!)
-
-### Как получить Personal Access Token:
+GitHub больше не принимает пароли. Используйте **Personal Access Token**:
 
 1. Перейдите: https://github.com/settings/tokens
 2. Нажмите **"Generate new token"** → **"Generate new token (classic)"**
 3. Заполните:
-   - **Note**: `KPI Dashboard Project`
-   - **Expiration**: выберите срок (например, 90 дней)
-   - **Scopes**: отметьте `repo` (полный доступ к репозиториям)
+   - **Note**: `WEB_DASHBOARD_KPI access`
+   - **Expiration**: Выберите срок действия (например, 90 дней)
+   - **Select scopes**: Отметьте **`repo`** (полный доступ к репозиториям)
 4. Нажмите **"Generate token"**
 5. **Скопируйте токен** (он показывается только один раз!)
-6. Используйте этот токен как пароль при `git push`
+6. При запросе пароля в PowerShell вставьте этот токен
 
-## Все команды одной строкой (после перезапуска PowerShell)
+## Проверка
+
+После выполнения команд:
+1. Обновите страницу репозитория на GitHub: https://github.com/kikgames18/WEB_DASHBOARD_KPI
+2. Убедитесь, что все файлы загружены
+3. Проверьте, что README.md отображается корректно
+
+## Дальнейшая работа
+
+### Добавление изменений:
 
 ```powershell
-cd "c:\Users\German\Downloads\project-bolt-sb1-qsjjhlj4 (1)\project"
-git init
 git add .
-git commit -m "Initial commit: KPI Dashboard for Service Business"
-git remote add origin https://github.com/kikgames18/service-kpi-dashboard.git
-git branch -M main
+git commit -m "Описание изменений"
+git push
+```
+
+### Получение изменений:
+
+```powershell
+git pull
+```
+
+### Просмотр статуса:
+
+```powershell
+git status
+```
+
+## Возможные проблемы
+
+### Ошибка "remote origin already exists"
+
+```powershell
+git remote remove origin
+git remote add origin https://github.com/kikgames18/WEB_DASHBOARD_KPI.git
+```
+
+### Ошибка "failed to push some refs"
+
+```powershell
+git pull origin main --allow-unrelated-histories
 git push -u origin main
 ```
 
-## Проверка установки Git
+### Git не найден в PowerShell
 
-Перед выполнением команд проверьте:
-
-```powershell
-git --version
-```
-
-Должна отобразиться версия (например, `git version 2.43.0`)
-
-Если команда не работает:
-1. Убедитесь, что Git установлен
-2. **Перезапустите PowerShell** (закройте и откройте заново)
-3. Попробуйте снова
-
-## После успешного push
-
-Откройте в браузере:
-```
-https://github.com/kikgames18/service-kpi-dashboard
-```
-
-Вы должны увидеть все файлы проекта!
-
+1. Перезапустите PowerShell (закройте и откройте заново)
+2. Или добавьте Git в PATH вручную:
+   - Обычно Git устанавливается в: `C:\Program Files\Git\cmd`
+   - Добавьте этот путь в переменную окружения PATH

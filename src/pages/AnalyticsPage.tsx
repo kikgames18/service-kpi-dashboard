@@ -3,30 +3,46 @@ import { api } from '../lib/api';
 import { BarChart } from '../components/charts/BarChart';
 import { DonutChart } from '../components/charts/DonutChart';
 import { LineChart } from '../components/charts/LineChart';
+import { TrendingUp, Clock, DollarSign, Award } from 'lucide-react';
 
 interface ServiceOrder {
+  id: string;
   device_type: string;
   status: string;
   priority: string;
   final_cost: number | null;
+  estimated_cost: number | null;
   received_date: string;
   completed_date: string | null;
+  issue_description: string;
+  assigned_to: string | null;
+  technician_name?: string | null;
+}
+
+interface Technician {
+  id: string;
+  full_name: string;
 }
 
 export function AnalyticsPage() {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadOrders();
+    loadData();
   }, []);
 
-  const loadOrders = async () => {
+  const loadData = async () => {
     try {
-      const data = await api.getOrders();
-      setOrders(data || []);
+      const [ordersData, techniciansData] = await Promise.all([
+        api.getOrders(),
+        api.getTechnicians(),
+      ]);
+      setOrders(ordersData || []);
+      setTechnicians(techniciansData || []);
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
@@ -109,38 +125,176 @@ export function AnalyticsPage() {
     };
   });
 
+  // Статистика по техникам
+  const technicianStats = technicians.map((tech) => {
+    const techOrders = orders.filter((order) => order.assigned_to === tech.id);
+    const completedOrders = techOrders.filter((order) => order.status === 'completed');
+    const totalRevenue = completedOrders.reduce(
+      (sum, order) => sum + (order.final_cost || 0),
+      0
+    );
+    const avgCompletionTime = completedOrders.length > 0
+      ? completedOrders.reduce((sum, order) => {
+          if (order.completed_date && order.received_date) {
+            const start = new Date(order.received_date);
+            const end = new Date(order.completed_date);
+            const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            return sum + hours;
+          }
+          return sum;
+        }, 0) / completedOrders.length
+      : 0;
+
+    return {
+      id: tech.id,
+      name: tech.full_name,
+      totalOrders: techOrders.length,
+      completedOrders: completedOrders.length,
+      revenue: totalRevenue,
+      avgTime: avgCompletionTime,
+      completionRate: techOrders.length > 0 
+        ? (completedOrders.length / techOrders.length) * 100 
+        : 0,
+    };
+  }).sort((a, b) => b.totalOrders - a.totalOrders);
+
+  // Топ-5 проблем (по частоте упоминания в описании)
+  const issueKeywords: Record<string, number> = {};
+  orders.forEach((order) => {
+    const description = order.issue_description.toLowerCase();
+    const commonIssues = [
+      'не включается', 'не работает', 'не загружается', 'не включается экран',
+      'перегрев', 'шум', 'медленно работает', 'вирус', 'сломан', 'разбит',
+      'не заряжается', 'не работает звук', 'не работает wi-fi', 'не работает клавиатура',
+    ];
+    
+    commonIssues.forEach((issue) => {
+      if (description.includes(issue)) {
+        issueKeywords[issue] = (issueKeywords[issue] || 0) + 1;
+      }
+    });
+  });
+
+  const topIssues = Object.entries(issueKeywords)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([issue, count]) => ({
+      label: issue.charAt(0).toUpperCase() + issue.slice(1),
+      value: count,
+    }));
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Аналитика</h1>
-        <p className="text-gray-600 mt-1">Подробный анализ данных о заказах</p>
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Аналитика</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Подробный анализ данных о заказах</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Типы устройств</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Типы устройств</h3>
           <BarChart data={deviceTypeData} color="#3b82f6" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Приоритеты заказов</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Приоритеты заказов</h3>
           <div className="flex justify-center">
             <DonutChart data={priorityData} size={240} centerLabel="Всего" centerValue={orders.length.toString()} />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Выручка по типам устройств (₽)</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Выручка по типам устройств (₽)</h3>
           <BarChart data={revenueData} color="#10b981" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Заказы за последние 7 дней</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Заказы за последние 7 дней</h3>
           <LineChart data={ordersPerDay} height={220} color="#f59e0b" />
         </div>
       </div>
+
+      {/* Статистика по техникам */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-4 md:mb-6">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Статистика по техникам</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Техник</th>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Всего заказов</th>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Завершено</th>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Выручка</th>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Среднее время</th>
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">% выполнения</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {technicianStats.map((stat) => (
+                <tr key={stat.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-2 md:px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{stat.name}</td>
+                  <td className="px-2 md:px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{stat.totalOrders}</td>
+                  <td className="px-2 md:px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{stat.completedOrders}</td>
+                  <td className="px-2 md:px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                    {stat.revenue.toLocaleString('ru-RU')} ₽
+                  </td>
+                  <td className="px-2 md:px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                    {stat.avgTime > 0 ? `${stat.avgTime.toFixed(1)} ч` : '-'}
+                  </td>
+                  <td className="px-2 md:px-4 py-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${stat.completionRate}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-600 dark:text-gray-300 w-12 text-right">
+                        {stat.completionRate.toFixed(0)}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {technicianStats.length === 0 && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">Нет данных о техниках</div>
+          )}
+        </div>
+      </div>
+
+      {/* Топ проблем */}
+      {topIssues.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Топ-5 самых частых проблем</h3>
+          <div className="space-y-3">
+            {topIssues.map((issue, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold">
+                  {index + 1}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{issue.label}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{issue.value} раз</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{
+                        width: `${(issue.value / topIssues[0].value) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

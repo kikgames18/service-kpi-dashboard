@@ -57,10 +57,10 @@ export function DonutChart({ data, size = 200, centerLabel, centerValue }: Donut
         {(centerLabel || centerValue) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {centerValue && (
-              <div className="text-3xl font-bold text-gray-900">{centerValue}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">{centerValue}</div>
             )}
             {centerLabel && (
-              <div className="text-sm text-gray-600">{centerLabel}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{centerLabel}</div>
             )}
           </div>
         )}
@@ -69,7 +69,7 @@ export function DonutChart({ data, size = 200, centerLabel, centerValue }: Donut
         {segments.map((segment, index) => (
           <div key={index} className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: segment.color }} />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               {segment.label}: {segment.value} ({segment.percentage}%)
             </span>
           </div>

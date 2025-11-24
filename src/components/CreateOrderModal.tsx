@@ -23,6 +23,7 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -39,19 +40,64 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
     }
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Валидация имени
+    if (!formData.customer_name.trim()) {
+      errors.customer_name = 'Имя клиента обязательно';
+    } else if (formData.customer_name.trim().length < 2) {
+      errors.customer_name = 'Имя должно содержать минимум 2 символа';
+    }
+
+    // Валидация телефона
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    if (!formData.customer_phone.trim()) {
+      errors.customer_phone = 'Телефон обязателен';
+    } else if (!phoneRegex.test(formData.customer_phone)) {
+      errors.customer_phone = 'Некорректный формат телефона';
+    } else if (formData.customer_phone.replace(/\D/g, '').length < 10) {
+      errors.customer_phone = 'Телефон должен содержать минимум 10 цифр';
+    }
+
+    // Валидация описания
+    if (!formData.issue_description.trim()) {
+      errors.issue_description = 'Описание проблемы обязательно';
+    } else if (formData.issue_description.trim().length < 10) {
+      errors.issue_description = 'Описание должно содержать минимум 10 символов';
+    }
+
+    // Валидация стоимости
+    if (formData.estimated_cost) {
+      const cost = parseFloat(formData.estimated_cost);
+      if (isNaN(cost) || cost < 0) {
+        errors.estimated_cost = 'Стоимость должна быть положительным числом';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       await api.createOrder({
-        customer_name: formData.customer_name,
-        customer_phone: formData.customer_phone,
+        customer_name: formData.customer_name.trim(),
+        customer_phone: formData.customer_phone.trim(),
         device_type: formData.device_type,
-        device_brand: formData.device_brand || undefined,
-        device_model: formData.device_model || undefined,
-        issue_description: formData.issue_description,
+        device_brand: formData.device_brand?.trim() || undefined,
+        device_model: formData.device_model?.trim() || undefined,
+        issue_description: formData.issue_description.trim(),
         priority: formData.priority,
         estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : undefined,
         assigned_to: formData.assigned_to || undefined,
@@ -70,6 +116,7 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
         estimated_cost: '',
         assigned_to: '',
       });
+      setFieldErrors({});
     } catch (error: any) {
       setError(error.message || 'Ошибка при создании заказа');
     } finally {
@@ -108,9 +155,21 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
                 type="text"
                 required
                 value={formData.customer_name}
-                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, customer_name: e.target.value });
+                  if (fieldErrors.customer_name) {
+                    setFieldErrors({ ...fieldErrors, customer_name: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.customer_name
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.customer_name && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.customer_name}</p>
+              )}
             </div>
 
             <div>
@@ -120,10 +179,23 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
               <input
                 type="tel"
                 required
+                placeholder="+7 (999) 123-45-67"
                 value={formData.customer_phone}
-                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, customer_phone: e.target.value });
+                  if (fieldErrors.customer_phone) {
+                    setFieldErrors({ ...fieldErrors, customer_phone: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.customer_phone
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.customer_phone && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.customer_phone}</p>
+              )}
             </div>
           </div>
 
@@ -179,9 +251,21 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
               required
               rows={3}
               value={formData.issue_description}
-              onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => {
+                setFormData({ ...formData, issue_description: e.target.value });
+                if (fieldErrors.issue_description) {
+                  setFieldErrors({ ...fieldErrors, issue_description: '' });
+                }
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                fieldErrors.issue_description
+                  ? 'border-red-300 bg-red-50'
+                  : 'border-gray-300'
+              }`}
             />
+            {fieldErrors.issue_description && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.issue_description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -210,9 +294,21 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
                 min="0"
                 step="0.01"
                 value={formData.estimated_cost}
-                onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData({ ...formData, estimated_cost: e.target.value });
+                  if (fieldErrors.estimated_cost) {
+                    setFieldErrors({ ...fieldErrors, estimated_cost: '' });
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.estimated_cost
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
               />
+              {fieldErrors.estimated_cost && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.estimated_cost}</p>
+              )}
             </div>
 
             <div>
