@@ -44,3 +44,9 @@ git push -u origin main
 - Предупреждения о LF/CRLF можно игнорировать - это нормально для Windows
 - При `git push` GitHub запросит авторизацию (используйте Personal Access Token)
 
+
+
+
+
+
+

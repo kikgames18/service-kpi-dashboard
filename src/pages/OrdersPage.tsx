@@ -202,46 +202,46 @@ export function OrdersPage() {
               <Download className="w-5 h-5" />
               <span className="hidden md:inline">Экспорт 1С</span>
             </button>
-          </div>
-          {isAdmin && (
+        </div>
+        {isAdmin && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
-              <Plus className="w-5 h-5" />
-              Новый заказ
-            </button>
-          )}
+            <Plus className="w-5 h-5" />
+            Новый заказ
+          </button>
+        )}
         </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
         <div className="p-4 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
+          <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Поиск по номеру заказа, клиенту или телефону..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+            <input
+              type="text"
+              placeholder="Поиск по номеру заказа, клиенту или телефону..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              />
-            </div>
-            <div className="flex items-center gap-2">
+            />
+          </div>
+          <div className="flex items-center gap-2">
               <Filter className="text-gray-400 dark:text-gray-500 w-5 h-5" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="all">Все статусы</option>
-                <option value="pending">Ожидает</option>
-                <option value="in_progress">В работе</option>
-                <option value="completed">Завершено</option>
-                <option value="cancelled">Отменено</option>
-              </select>
-            </div>
+            >
+              <option value="all">Все статусы</option>
+              <option value="pending">Ожидает</option>
+              <option value="in_progress">В работе</option>
+              <option value="completed">Завершено</option>
+              <option value="cancelled">Отменено</option>
+            </select>
+          </div>
             <div className="flex items-center gap-2">
               <Calendar className="text-gray-400 dark:text-gray-500 w-5 h-5" />
               <select

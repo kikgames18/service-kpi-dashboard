@@ -38,3 +38,9 @@ JWT_SECRET=your_super_secret_jwt_key_change_in_production
 3. Скопируйте содержимое выше в файл
 4. Сохраните файл
 
+
+
+
+
+
+

@@ -58,8 +58,8 @@ export function TechniciansPage() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Сотрудники</h1>
-          <p className="text-gray-600 mt-1">Управление техниками и специалистами</p>
+        <h1 className="text-3xl font-bold text-gray-900">Сотрудники</h1>
+        <p className="text-gray-600 mt-1">Управление техниками и специалистами</p>
         </div>
         {isAdmin && (
           <button

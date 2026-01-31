@@ -60,3 +60,9 @@ export function StackedBarChart({ data, height = 200, colors = ['#3b82f6', '#10b
   );
 }
 
+
+
+
+
+
+

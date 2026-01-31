@@ -460,12 +460,12 @@ export function DashboardPage() {
           <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Статус заказов</h3>
           <div className="flex justify-center">
             {orderStatusData.length > 0 ? (
-              <DonutChart
-                data={orderStatusData}
-                size={240}
-                centerLabel="Всего"
+            <DonutChart
+              data={orderStatusData}
+              size={240}
+              centerLabel="Всего"
                 centerValue={allTotalOrders.toString()}
-              />
+            />
             ) : (
               <div className="flex items-center justify-center h-60 text-gray-400 dark:text-gray-500">
                 Нет данных
